@@ -1,0 +1,26 @@
+Time slot   0
+ld_routine
+Time slot   1
+Time slot   2
+Time slot   3
+Time slot   4
+Time slot   5
+Time slot   6
+Time slot   7
+Time slot   8
+Time slot   9
+	Loaded a process at input/proc/sc2, PID: 1 PRIO: 15
+Time slot  10
+	CPU 0: Dispatched process  1
+Time slot  11
+Time slot  12
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
+Time slot  13
+Time slot  14
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
+The procname retrieved from memregionid 1 is "P0"
+Time slot  15
+	CPU 0: Processed  1 has finished
+	CPU 0 stopped

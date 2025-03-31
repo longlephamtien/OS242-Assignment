@@ -1,0 +1,20 @@
+Time slot   0
+ld_routine
+os after load input/proc/sc1
+Time slot   1
+Time slot   2
+Time slot   3
+Time slot   4
+Time slot   5
+Time slot   6
+Time slot   7
+Time slot   8
+	Loaded a process at input/proc/sc1, PID: 1 PRIO: 15
+	CPU 0: Dispatched process  1
+0-sys_listsyscall
+17-sys_memmap
+101-sys_killall
+Time slot   9
+Time slot  10
+	CPU 0: Processed  1 has finished
+	CPU 0 stopped
