@@ -20,7 +20,7 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
 
     //hardcode for demo only
     uint32_t memrg = regs->a1;
-    int j = 0;
+    int j = 1;
     /* TODO: Get name of the target proc */
     //proc_name = libread..
     int i = 0;
