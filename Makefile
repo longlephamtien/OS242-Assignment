@@ -46,6 +46,13 @@ syscalltbl.lst: $(SRC)/syscall.tbl
 os: $(OBJ) syscalltbl.lst $(OS_OBJ)
 	$(MAKE) $(LFLAGS) $(OS_OBJ) -o os $(LIB)
 
+# Compile the test program
+test: $(OBJ)/test.o
+	$(MAKE) $(LFLAGS) $(OBJ)/test.o -o test $(LIB)
+
+$(OBJ)/test.o: test.c ${HEADER} $(OBJ)
+	$(MAKE) $(CFLAGS) test.c -o $(OBJ)/test.o
+
 $(OBJ)/%.o: %.c ${HEADER} $(OBJ)
 	$(MAKE) $(CFLAGS) $< -o $@
 
@@ -55,5 +62,5 @@ $(OBJ):
 
 clean:
 	rm -f $(SRC)/*.lst
-	rm -f $(OBJ)/*.o os sched mem
+	rm -f $(OBJ)/*.o os sched mem test
 	rm -rf $(OBJ)
