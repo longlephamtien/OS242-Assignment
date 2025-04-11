@@ -14,6 +14,20 @@
 #include "libmem.h"
 #include "queue.h"
 
+void match_terminate(struct queue_t *queue, const char *proc_name) {
+    for (int i = 0; i < queue->size; ) {
+        struct pcb_t *pcb = queue->proc[i];
+        if (pcb && strcmp(pcb->path, proc_name) == 0) {
+            for (int j = i; j < queue->size - 1; j++)
+                queue->proc[j] = queue->proc[j + 1];
+            queue->size--;
+            free(pcb);
+        } else {
+            i++;
+        }
+    }
+}
+
 int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
 {
     char proc_name[100];
@@ -42,37 +56,18 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
      */
     //caller->running_list
     //caller->mlq_ready_queu
-    if (caller->ready_queue) {
-        for (int i = 0; i < caller->ready_queue->size; ) {
-            struct pcb_t *pcb = caller->ready_queue->proc[i];
-            if (pcb && strcmp(pcb->path, proc_name) == 0) {
-                for (int j = i; j < caller->ready_queue->size - 1; j++)
-                    caller->ready_queue->proc[j] = caller->ready_queue->proc[j + 1];
-                caller->ready_queue->size--;
-                free(pcb);
-            } else {
-                i++;
-            }
-        }
-    }
 
-    if (caller->running_list) {
-        for (int i = 0; i < caller->running_list->size; ) {
-            struct pcb_t *pcb = caller->running_list->proc[i];
-            if (pcb && strcmp(pcb->path, proc_name) == 0) {
-                for (int j = i; j < caller->running_list->size - 1; j++)
-                    caller->running_list->proc[j] = caller->running_list->proc[j + 1];
-                caller->running_list->size--;
-                free(pcb);
-            } else {
-                i++;
-            }
-        }
-    }
+    match_terminate(caller->running_list, proc_name);
+    match_terminate(caller->mlq_ready_queue, proc_name);
+
     /* TODO Maching and terminating 
      *       all processes with given
      *        name in var proc_name
      */
+
+    match_terminate(caller->ready_queue, proc_name);
+
+    printf("All processes with name \"%s\" have been terminated.\n", proc_name);
 
     return 0; 
 }
