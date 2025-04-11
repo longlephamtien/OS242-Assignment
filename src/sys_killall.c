@@ -12,6 +12,7 @@
 #include "syscall.h"
 #include "stdio.h"
 #include "libmem.h"
+#include "queue.h"
 
 int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
 {
@@ -38,7 +39,33 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
      */
     //caller->running_list
     //caller->mlq_ready_queu
+    if (caller->ready_queue) {
+        for (int i = 0; i < caller->ready_queue->size; ) {
+            struct pcb_t *pcb = caller->ready_queue->proc[i];
+            if (pcb && strcmp(pcb->path, proc_name) == 0) {
+                for (int j = i; j < caller->ready_queue->size - 1; j++)
+                    caller->ready_queue->proc[j] = caller->ready_queue->proc[j + 1];
+                caller->ready_queue->size--;
+                free(pcb);
+            } else {
+                i++;
+            }
+        }
+    }
 
+    if (caller->running_list) {
+        for (int i = 0; i < caller->running_list->size; ) {
+            struct pcb_t *pcb = caller->running_list->proc[i];
+            if (pcb && strcmp(pcb->path, proc_name) == 0) {
+                for (int j = i; j < caller->running_list->size - 1; j++)
+                    caller->running_list->proc[j] = caller->running_list->proc[j + 1];
+                caller->running_list->size--;
+                free(pcb);
+            } else {
+                i++;
+            }
+        }
+    }
     /* TODO Maching and terminating 
      *       all processes with given
      *        name in var proc_name
