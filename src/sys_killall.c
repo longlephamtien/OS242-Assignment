@@ -29,7 +29,10 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
     while(data != -1){
         libread(caller, memrg, i, &data);
         proc_name[i]= data;
-        if(data == -1) proc_name[i]='\0';
+        if(data == -1) {
+            proc_name[i]='\0';
+            break;
+        }
         i++;
     }
     printf("The procname retrieved from memregionid %d is \"%s\"\n", memrg, proc_name);
