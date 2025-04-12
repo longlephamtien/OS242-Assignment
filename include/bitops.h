@@ -36,4 +36,3 @@
 
 #define EXTRACT_NBITS(nr, h, l) ((nr&GENMASK(h,l)) >> l)
 
-#define test 2025
