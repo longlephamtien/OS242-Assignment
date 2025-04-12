@@ -35,3 +35,5 @@
 #define NBITS(n) (n==0?0:NBITS32(n))
 
 #define EXTRACT_NBITS(nr, h, l) ((nr&GENMASK(h,l)) >> l)
+
+#define test 2025
