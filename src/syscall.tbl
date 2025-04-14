@@ -15,3 +15,4 @@
 0       listsyscall sys_listsyscall
 17      memmap	    sys_memmap
 101     killall     sys_killall
+440     xxx         sys_xxxhandler
