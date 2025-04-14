@@ -12,6 +12,24 @@
 #include "syscall.h"
 #include "stdio.h"
 #include "libmem.h"
+#include "mm.h"
+#include "string.h"
+#include "queue.h"
+
+void match_terminate(struct pcb_t *caller, struct queue_t *queue, const char *proc_name) {
+    for (int i = 0; i < queue->size; ) {
+        struct pcb_t *pcb = queue->proc[i];
+        if (pcb && strcmp(pcb->path, proc_name) == 0) {
+            for (int j = i; j < queue->size - 1; j++)
+                queue->proc[j] = queue->proc[j + 1];
+            queue->size--;
+            __free(caller, i, *(int*)(queue->proc[i]->code->text));
+            __free(caller, i, *(int*)queue->proc[i]->code);
+        } else {
+            i++;
+        }
+    }
+}
 
 int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
 {
@@ -28,7 +46,10 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
     while(data != -1){
         libread(caller, memrg, i, &data);
         proc_name[i]= data;
-        if(data == -1) proc_name[i]='\0';
+        if(data == -1) {
+            proc_name[i]='\0';
+            break;
+        }
         i++;
     }
     printf("The procname retrieved from memregionid %d is \"%s\"\n", memrg, proc_name);
@@ -43,6 +64,12 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs* regs)
      *       all processes with given
      *        name in var proc_name
      */
+
+    match_terminate(caller, caller->running_list, proc_name);
+    match_terminate(caller, caller->mlq_ready_queue, proc_name); 
+    match_terminate(caller, caller->ready_queue, proc_name); 
+    
+    printf("All processes with name \"%s\" have been terminated.\n", proc_name);
 
     return 0; 
 }
