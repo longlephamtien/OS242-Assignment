@@ -10,21 +10,21 @@
 
 #include "common.h"
 #include "syscall.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include "libmem.h"
 #include "mm.h"
-#include "string.h"
+#include <string.h>
 #include "queue.h"
 
 void match_terminate(struct pcb_t *caller, struct queue_t *queue, const char *proc_name) {
     for (int i = 0; i < queue->size; ) {
-        struct pcb_t *pcb = queue->proc[i];
-        if (pcb && strcmp(pcb->path, proc_name) == 0) {
+        if (pcb && strcmp(queue->proc[i]->path, proc_name) == 0) {
+            struct pcb_t *pcb = queue->proc[i];
             for (int j = i; j < queue->size - 1; j++)
                 queue->proc[j] = queue->proc[j + 1];
             queue->size--;
-            __free(caller, i, *(int*)(queue->proc[i]->code->text));
-            __free(caller, i, *(int*)queue->proc[i]->code);
+            free(pcb);
         } else {
             i++;
         }
