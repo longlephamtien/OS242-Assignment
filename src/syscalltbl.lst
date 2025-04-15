@@ -1,0 +1,3 @@
+__SYSCALL(0, sys_listsyscall)
+__SYSCALL(17, sys_memmap)
+__SYSCALL(101, sys_killall)
