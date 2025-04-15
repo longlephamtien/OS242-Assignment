@@ -48,9 +48,6 @@ static struct trans_table_t * get_trans_table(
 	int i;
 	for (i = 0; i < page_table->size; i++) {
 		// Enter your code here
-	// 	if (page_table->table[i].index == index) {
-	// 		return &page_table->table[i];
-	// 	}
 	}
 	return NULL;
 
