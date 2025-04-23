@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "syscall.h": "c",
+        "queue.h": "c",
+        "stdlib.h": "c",
+        "libmem.h": "c"
+    }
+}
