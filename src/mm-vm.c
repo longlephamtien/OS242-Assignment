@@ -124,7 +124,7 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
     return -1; /* Map the memory to MEMRAM */
   
   free(area);
-  enlist_vm_rg_node(&cur_vma->vm_freerg_list, newrg);
+  // enlist_vm_rg_node(&cur_vma->vm_freerg_list, newrg);
   // newrg = area;
 
   return 0;

@@ -95,6 +95,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     
     
     int inc_sz = PAGING_PAGE_ALIGNSZ(size);
+    int old_sbrk = cur_vma->sbrk;
     // int inc_limit_ret;
     
     /* TODO retrive old_sbrk if needed, current comment out due to compiler redundant warning*/
@@ -125,14 +126,11 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     // if(enlist_vm_freerg_list(caller->mm, &rgnode) != 0)
     //   return -1;
     
-    if(get_free_vmrg_area(caller, vmaid, size, &rgnode) != 0)
-    return -1;
+    caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
+    caller->mm->symrgtbl[rgid].rg_end = old_sbrk + inc_sz;
     
-    caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
-    caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
-    
-    *alloc_addr = rgnode.rg_start;
-    pthread_mutex_unlock(&mmvm_lock);
+    *alloc_addr = old_sbrk;
+    // pthread_mutex_unlock(&mmvm_lock);
     
     /* TODO: commit the allocation address 
     // *alloc_addr = ...
@@ -167,21 +165,17 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
   if(currg == NULL || currg->rg_start == -1)
     return -1;
   struct vm_rg_struct *haha = malloc(sizeof(struct vm_rg_struct));
-  if(haha == NULL)
-    return -1;
   haha->rg_start = currg->rg_start;
   haha->rg_end = currg->rg_end;
   haha->rg_next = NULL;
   
   /*enlist the obsoleted memory region */
   //enlist_vm_freerg_list();
-  if(enlist_vm_freerg_list(caller->mm, haha) != 0){
-    free(haha);
-    return -1;
-  }
+  enlist_vm_freerg_list(caller->mm, haha);
   
   caller->mm->symrgtbl[rgid].rg_start = -1;
   caller->mm->symrgtbl[rgid].rg_end = -1;
+  caller->mm->symrgtbl[rgid].rg_next = NULL;
   
   return 0;
 }  
@@ -559,34 +553,14 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
       {
         rgit->rg_start = rgit->rg_start + size;
       }
-      else
-      {
-        struct vm_rg_struct *nextrg = rgit->rg_next;
-
-        if (nextrg != NULL)
-        {
-          rgit->rg_start = nextrg->rg_start;
-          rgit->rg_end = nextrg->rg_end;
-
-          rgit->rg_next = nextrg->rg_next;
-          
-          free(nextrg);
-        }
-        else
-        {
-          rgit->rg_start = rgit->rg_end;
-          rgit->rg_next = NULL;
-        }
-      }
-      break;
+      // else if (rgit->rg_next) rgit = rgit->rg_next;
+      // else rgit->rg_start = rgit->rg_end;
+      return 0;
     }
     rgit = rgit->rg_next;
   }
 
-  if (newrg->rg_start == -1 && newrg->rg_end == -1)
   return -1;
-
-  return 0;
 }
 
 //#endif
