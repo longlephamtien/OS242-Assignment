@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+ 
 /*
  *  MEMPHY_mv_csr - move MEMPHY cursor
  *  @mp: memphy struct
@@ -28,7 +28,7 @@ int MEMPHY_mv_csr(struct memphy_struct *mp, int offset)
 
    return 0;
 }
-
+ 
 /*
  *  MEMPHY_seq_read - read MEMPHY device
  *  @mp: memphy struct
@@ -48,7 +48,7 @@ int MEMPHY_seq_read(struct memphy_struct *mp, int addr, BYTE *value)
 
    return 0;
 }
-
+ 
 /*
  *  MEMPHY_read read MEMPHY device
  *  @mp: memphy struct
@@ -67,7 +67,7 @@ int MEMPHY_read(struct memphy_struct *mp, int addr, BYTE *value)
 
    return 0;
 }
-
+ 
 /*
  *  MEMPHY_seq_write - write MEMPHY device
  *  @mp: memphy struct
@@ -88,7 +88,7 @@ int MEMPHY_seq_write(struct memphy_struct *mp, int addr, BYTE value)
 
    return 0;
 }
-
+ 
 /*
  *  MEMPHY_write-write MEMPHY device
  *  @mp: memphy struct
@@ -107,7 +107,7 @@ int MEMPHY_write(struct memphy_struct *mp, int addr, BYTE data)
 
    return 0;
 }
-
+ 
 /*
  *  MEMPHY_format-format MEMPHY device
  *  @mp: memphy struct
@@ -139,7 +139,7 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 
    return 0;
 }
-
+ 
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 {
    struct framephy_struct *fp = mp->free_fp_list;
@@ -157,15 +157,22 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 
    return 0;
 }
-
+ 
 int MEMPHY_dump(struct memphy_struct *mp)
 {
-  /*TODO dump memphy contnt mp->storage
-   *     for tracing the memory content
-   */
-   return 0;
+   /*TODO dump memphy contnt mp->storage
+    *     for tracing the memory content
+    */
+printf("===== PHYSICAL MEMORY DUMP =====\n");
+for(int i = 0; i < mp->maxsz; i++){
+   if(mp->storage[i] != 0)
+      printf("Byte %08x: %d\n", i, mp->storage[i]);
 }
-
+printf("===== PHYSICAL MEMORY END-DUMP =====\n");
+printf("================================================================\n");
+return 0;
+}
+ 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 {
    struct framephy_struct *fp = mp->free_fp_list;
@@ -178,7 +185,7 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
 
    return 0;
 }
-
+ 
 /*
  *  Init MEMPHY struct
  */
