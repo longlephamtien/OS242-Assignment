@@ -83,8 +83,8 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
   }
 
   int old_end = cur_vma->vm_end;
-  cur_vma->vm_end += inc_amt;
-  cur_vma->sbrk += inc_amt;
+  cur_vma->vm_end += inc_sz;
+  cur_vma->sbrk += inc_sz;
 
   struct vm_rg_struct *newrg = malloc(sizeof(struct vm_rg_struct));
   if (newrg == NULL)
@@ -95,6 +95,8 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
 
   if (vm_map_ram(caller, area->rg_start, area->rg_end, old_end, incnumpage, newrg) < 0)
   {
+    cur_vma->vm_end = old_end;
+    cur_vma->sbrk = old_end;
     free(area);
     free(newrg);
     return -1; // Mapping failed

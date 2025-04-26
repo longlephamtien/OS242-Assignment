@@ -79,7 +79,7 @@ int vmap_page_range(struct pcb_t *caller,           // process call
                     struct framephy_struct *frames, // list of the mapped frames
                     struct vm_rg_struct *ret_rg)    // return mapped region, the real mapped fp
 {                                                   // no guarantee all given pages are mapped
-  // struct framephy_struct *fpit;
+  struct framephy_struct *fpit = frames;
   int pgit = 0;
   int pgn = PAGING_PGN(addr);
   /* TODO: update the rg_end and rg_start of ret_rg
@@ -97,13 +97,13 @@ int vmap_page_range(struct pcb_t *caller,           // process call
   // enlist_vm_rg_node(&caller->mm->mmap, ret_rg);
   for (; pgit < pgnum; pgit++)
   {
-    if (frames == NULL)
-      return -1;
+    if (fpit == NULL)
+      break;
     int curpgn = pgn + pgit;
-    int curfpn = frames->fpn;
+    int curfpn = fpit->fpn;
 
     pte_set_fpn(&caller->mm->pgd[curpgn], curfpn);
-    frames = frames->fp_next;
+    fpit = fpit->fp_next;
     // PAGING_PAGE_PRESENT(caller->mm->pgd[curpgn]);
     /* Tracking for later page replacement activities (if needed)
      * Enqueue new usage page */
@@ -118,6 +118,24 @@ int vmap_page_range(struct pcb_t *caller,           // process call
  */
 int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct **frm_lst)
 {
+  if (req_pgnum * PAGING_PAGESZ > caller->mram->maxsz)
+  {
+    return -3000;
+  }
+
+  int used_frames = 0;
+  for (int i = 0; i < PAGING_MAX_PGN; i++)
+  {
+    if (PAGING_PAGE_PRESENT(caller->mm->pgd[i]))
+    {
+      used_frames++;
+    }
+  }
+  if ((used_frames + req_pgnum) * PAGING_PAGESZ > caller->mram->maxsz)
+  {
+    return -3000;
+  }
+
   int pgit, fpn;
   struct framephy_struct *newfp_str = NULL;
 
@@ -134,7 +152,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
         *frm_lst = (*frm_lst)->fp_next;
         free(freefp_str);
       }
-      return -1;
+      return -3000;
     }
 
     if (MEMPHY_get_freefp(caller->mram, &fpn) == 0)

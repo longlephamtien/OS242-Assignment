@@ -40,6 +40,9 @@ int MEMPHY_seq_read(struct memphy_struct *mp, int addr, BYTE *value)
    if (mp == NULL)
       return -1;
 
+   if (addr < 0 || addr >= mp->maxsz)
+      return -1;
+
    if (!mp->rdmflg)
       return -1; /* Not compatible mode for sequential read */
 
@@ -58,6 +61,9 @@ int MEMPHY_seq_read(struct memphy_struct *mp, int addr, BYTE *value)
 int MEMPHY_read(struct memphy_struct *mp, int addr, BYTE *value)
 {
    if (mp == NULL)
+      return -1;
+
+   if (addr < 0 || addr >= mp->maxsz)
       return -1;
 
    if (mp->rdmflg)
@@ -80,6 +86,9 @@ int MEMPHY_seq_write(struct memphy_struct *mp, int addr, BYTE value)
    if (mp == NULL)
       return -1;
 
+   if (addr < 0 || addr >= mp->maxsz)
+      return -1;
+
    if (!mp->rdmflg)
       return -1; /* Not compatible mode for sequential read */
 
@@ -98,6 +107,9 @@ int MEMPHY_seq_write(struct memphy_struct *mp, int addr, BYTE value)
 int MEMPHY_write(struct memphy_struct *mp, int addr, BYTE data)
 {
    if (mp == NULL)
+      return -1;
+
+   if (addr < 0 || addr >= mp->maxsz)
       return -1;
 
    if (mp->rdmflg)
@@ -167,7 +179,7 @@ int MEMPHY_dump(struct memphy_struct *mp)
    for (int i = 0; i < mp->maxsz; i++)
    {
       if (mp->storage[i] != 0)
-         printf("Byte %08x: %d\n", i, mp->storage[i]);
+         printf("BYTE %08x: %d\n", i, mp->storage[i]);
    }
    printf("===== PHYSICAL MEMORY END-DUMP =====\n");
    printf("================================================================\n");

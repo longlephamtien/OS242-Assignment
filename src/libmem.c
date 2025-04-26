@@ -18,22 +18,57 @@
 
 static pthread_mutex_t mmvm_lock = PTHREAD_MUTEX_INITIALIZER;
 
-/* enlist_vm_freerg_list - Add a new region to the free region list */
+/*enlist_vm_freerg_list - add new rg to freerg_list
+ *@mm: memory region
+ *@rg_elmt: new region
+ *
+ */
 int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
 {
-  struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
-
   if (rg_elmt->rg_start >= rg_elmt->rg_end)
     return -1;
 
-  if (rg_node != NULL)
-    rg_elmt->rg_next = rg_node;
+  struct vm_rg_struct **prev = &mm->mmap->vm_freerg_list;
+  struct vm_rg_struct *cur = mm->mmap->vm_freerg_list;
 
-  mm->mmap->vm_freerg_list = rg_elmt;
+  // Insert in sorted order
+  while (cur && cur->rg_start < rg_elmt->rg_start)
+  {
+    prev = &cur->rg_next;
+    cur = cur->rg_next;
+  }
+  rg_elmt->rg_next = cur;
+  *prev = rg_elmt;
+
+  // Merge with next if adjacent
+  if (rg_elmt->rg_next && rg_elmt->rg_end == rg_elmt->rg_next->rg_start)
+  {
+    struct vm_rg_struct *to_merge = rg_elmt->rg_next;
+    rg_elmt->rg_end = to_merge->rg_end;
+    rg_elmt->rg_next = to_merge->rg_next;
+    free(to_merge);
+  }
+  // Merge with previous if adjacent
+  if (prev != &mm->mmap->vm_freerg_list)
+  {
+    struct vm_rg_struct *prev_rg = mm->mmap->vm_freerg_list;
+    while (prev_rg && prev_rg->rg_next != rg_elmt)
+      prev_rg = prev_rg->rg_next;
+    if (prev_rg && prev_rg->rg_end == rg_elmt->rg_start)
+    {
+      prev_rg->rg_end = rg_elmt->rg_end;
+      prev_rg->rg_next = rg_elmt->rg_next;
+      free(rg_elmt);
+    }
+  }
   return 0;
 }
 
-/* get_symrg_byid - Get memory region by region ID */
+/*get_symrg_byid - get mem region by region ID
+ *@mm: memory region
+ *@rgid: region ID act as symbol index of variable
+ *
+ */
 struct vm_rg_struct *get_symrg_byid(struct mm_struct *mm, int rgid)
 {
   if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
@@ -42,7 +77,14 @@ struct vm_rg_struct *get_symrg_byid(struct mm_struct *mm, int rgid)
   return &mm->symrgtbl[rgid];
 }
 
-/* __alloc - Allocate a memory region */
+/*__alloc - allocate a region memory
+ *@caller: caller
+ *@vmaid: ID vm area to alloc memory region
+ *@rgid: memory region ID (used to identify variable in symbole table)
+ *@size: allocated size
+ *@alloc_addr: address of allocated memory region
+ *
+ */
 int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 {
   pthread_mutex_lock(&mmvm_lock);
@@ -89,7 +131,13 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   return 0;
 }
 
-/* __free - Free a memory region */
+/*__free - remove a region memory
+ *@caller: caller
+ *@vmaid: ID vm area to alloc memory region
+ *@rgid: memory region ID (used to identify variable in symbole table)
+ *@size: allocated size
+ *
+ */
 int __free(struct pcb_t *caller, int vmaid, int rgid)
 {
   if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
@@ -106,6 +154,20 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
   new_region->rg_start = currg->rg_start;
   new_region->rg_end = currg->rg_end;
   new_region->rg_next = NULL;
+
+  // Free all physical frames and clear page table entries for this region
+  int start_pgn = PAGING_PGN(new_region->rg_start);
+  int end_pgn = PAGING_PGN(new_region->rg_end - 1);
+  for (int pgn = start_pgn; pgn <= end_pgn; ++pgn)
+  {
+    uint32_t pte = caller->mm->pgd[pgn];
+    if (PAGING_PAGE_PRESENT(pte))
+    {
+      int fpn = PAGING_PTE_FPN(pte);
+      MEMPHY_put_freefp(caller->mram, fpn);
+      caller->mm->pgd[pgn] = 0;
+    }
+  }
 
   if (enlist_vm_freerg_list(caller->mm, new_region) != 0)
   {
@@ -133,7 +195,7 @@ int liballoc(struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 
 #ifdef IODUMP
   printf("===== PHYSICAL MEMORY AFTER ALLOCATION =====\n");
-  printf("PID = %d - Region = %d - Address = %08x - Size = %d byte\n", proc->pid, reg_index, addr, size);
+  printf("PID=%d - Region=%d - Address=%08x - Size=%d byte\n", proc->pid, reg_index, addr, size);
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1);
 #endif
@@ -156,7 +218,7 @@ int libfree(struct pcb_t *proc, uint32_t reg_index)
 
 #ifdef IODUMP
   printf("===== PHYSICAL MEMORY AFTER DEALLOCATION =====\n");
-  printf("PID = %d - Region = %d\n", proc->pid, reg_index);
+  printf("PID=%d - Region=%d\n", proc->pid, reg_index);
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1);
 #endif
@@ -165,9 +227,18 @@ int libfree(struct pcb_t *proc, uint32_t reg_index)
   return ret;
 }
 
-/* pg_getpage - Get the page in RAM */
+/*pg_getpage - get the page in ram
+ *@mm: memory region
+ *@pagenum: PGN
+ *@framenum: return FPN
+ *@caller: caller
+ *
+ */
 int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
+  if (pgn < 0 || pgn >= PAGING_MAX_PGN)
+    return -1;
+
   uint32_t pte = mm->pgd[pgn];
 
   if (!PAGING_PAGE_PRESENT(pte))
@@ -215,6 +286,9 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
 {
   int pgn = PAGING_PGN(addr);
+  if (pgn < 0 || pgn >= PAGING_MAX_PGN)
+    return -1;
+
   int off = PAGING_OFFST(addr);
   int fpn;
 
@@ -243,6 +317,9 @@ int pg_getval(struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
 int pg_setval(struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
 {
   int pgn = PAGING_PGN(addr);
+  if (pgn < 0 || pgn >= PAGING_MAX_PGN)
+    return -1;
+
   int off = PAGING_OFFST(addr);
   int fpn;
 
@@ -333,6 +410,7 @@ int libwrite(
     uint32_t destination,
     uint32_t offset)
 {
+  int val = __write(proc, 0, destination, offset, data);
 #ifdef IODUMP
   printf("===== PHYSICAL MEMORY AFTER WRITING =====\n");
   printf("write region=%d offset=%d value=%d\n", destination, offset, data);
@@ -342,7 +420,7 @@ int libwrite(
   MEMPHY_dump(proc->mram);
 #endif
 
-  return __write(proc, 0, destination, offset, data);
+  return val;
 }
 
 /*free_pcb_memphy - collect all memphy of pcb
@@ -385,14 +463,29 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
   if (pg == NULL)
     return -1;
 
+  struct pgn_t *pg_prev = NULL;
+  while (pg->pg_next != NULL)
+  {
+    pg_prev = pg;
+    pg = pg->pg_next;
+  }
+
   *retpgn = pg->pgn;
-  mm->fifo_pgn = pg->pg_next;
+  if (pg_prev != NULL)
+    pg_prev->pg_next = NULL;
+  else
+    mm->fifo_pgn = NULL;
   free(pg);
 
   return 0;
 }
 
-/* get_free_vmrg_area - Find a free virtual memory region */
+/*get_free_vmrg_area - get a free vm region
+ *@caller: caller
+ *@vmaid: ID vm area to alloc memory region
+ *@size: allocated size
+ *
+ */
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg)
 {
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
@@ -416,19 +509,8 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
       }
       else
       {
-        struct vm_rg_struct *nextrg = rgit->rg_next;
-        if (nextrg != NULL)
-        {
-          rgit->rg_start = nextrg->rg_start;
-          rgit->rg_end = nextrg->rg_end;
-          rgit->rg_next = nextrg->rg_next;
-          free(nextrg);
-        }
-        else
-        {
-          rgit->rg_start = rgit->rg_end;
-          rgit->rg_next = NULL;
-        }
+        cur_vma->vm_freerg_list = NULL;
+        free(rgit);
       }
       break;
     }

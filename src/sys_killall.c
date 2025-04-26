@@ -13,28 +13,7 @@
 #include "stdio.h"
 #include "libmem.h"
 #include "queue.h"
-#include "mm.h"
 #include <string.h>
-#include <stdlib.h>
-
-void match_terminate(struct pcb_t *caller, struct queue_t *queue, const char *proc_name)
-{
-    for (int i = 0; i < queue->size;)
-    {
-        if (queue->proc[i] && strcmp(queue->proc[i]->path, proc_name) == 0)
-        {
-            struct pcb_t *pcb = queue->proc[i];
-            for (int j = i; j < queue->size - 1; j++)
-                queue->proc[j] = queue->proc[j + 1];
-            queue->size--;
-            free(pcb);
-        }
-        else
-        {
-            i++;
-        }
-    }
-}
 
 int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
 {
@@ -53,10 +32,7 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
         libread(caller, memrg, i, &data);
         proc_name[i] = data;
         if (data == -1)
-        {
             proc_name[i] = '\0';
-            break;
-        }
         i++;
     }
     printf("The procname retrieved from memregionid %d is \"%s\"\n", memrg, proc_name);
@@ -67,16 +43,46 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
     // caller->running_list
     // caller->mlq_ready_queu
 
-    /* TODO Maching and terminating
-     *       all processes with given
-     *        name in var proc_name
-     */
+    if (caller->running_list == NULL || caller->running_list->size == 0)
+        return -1;
 
-    match_terminate(caller, caller->running_list, proc_name);
-    match_terminate(caller, caller->mlq_ready_queue, proc_name);
-    match_terminate(caller, caller->ready_queue, proc_name);
+    struct queue_t *q = caller->running_list;
+    if (!empty(q))
+    {
+        for (int i = 0; i < q->size; i++)
+        {
+            char proc_name_in_queue[100];
+            int j = 0;
+            uint32_t temp = 0;
 
-    printf("All processes with name \"%s\" have been terminated.\n", proc_name);
+            while (temp != -1)
+            {
+                libread(caller, q->proc[i]->regs[0], j, &temp);
+                if (temp == -1)
+                {
+                    proc_name_in_queue[j] = '\0';
+                    break;
+                }
+                proc_name_in_queue[j] = temp;
+                j++;
+            }
 
-    return 0;
+            /* TODO Maching and terminating
+             *       all processes with given
+             *        name in var proc_name
+             */
+
+            if (strcmp(proc_name, proc_name_in_queue) == 0)
+            {
+                struct pcb_t *proc = q->proc[i];
+                for (int t = i; t < q->size - 1; t++)
+                {
+                    q->proc[t] = q->proc[t + 1];
+                }
+                libfree(proc, proc->regs[0]);
+            }
+        }
+    }
+
+    return -1;
 }
