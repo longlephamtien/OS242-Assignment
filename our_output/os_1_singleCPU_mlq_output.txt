@@ -1,0 +1,36 @@
+Time slot   0
+ld_routine
+	Loaded a process at input/proc/, PID: 1 PRIO: 0
+	CPU 0: Dispatched process  1
+Time slot   1
+	CPU 0: Processed  1 has finished
+	Loaded a process at input/proc/, PID: 2 PRIO: 0
+Time slot   2
+	CPU 0: Dispatched process  2
+	Loaded a process at input/proc/, PID: 3 PRIO: 0
+Time slot   3
+	CPU 0: Processed  2 has finished
+	CPU 0: Dispatched process  3
+	Loaded a process at input/proc/, PID: 4 PRIO: 0
+Time slot   4
+	CPU 0: Processed  3 has finished
+	CPU 0: Dispatched process  4
+	Loaded a process at input/proc/, PID: 5 PRIO: 0
+Time slot   5
+	CPU 0: Processed  4 has finished
+	CPU 0: Dispatched process  5
+	Loaded a process at input/proc/, PID: 6 PRIO: 0
+Time slot   6
+	CPU 0: Processed  5 has finished
+	CPU 0: Dispatched process  6
+	Loaded a process at input/proc/, PID: 7 PRIO: 0
+Time slot   7
+	CPU 0: Processed  6 has finished
+	CPU 0: Dispatched process  7
+	Loaded a process at input/proc/, PID: 8 PRIO: 0
+Time slot   8
+	CPU 0: Processed  7 has finished
+	CPU 0: Dispatched process  8
+Time slot   9
+	CPU 0: Processed  8 has finished
+	CPU 0 stopped

@@ -157,7 +157,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
 
   // Free all physical frames and clear page table entries for this region
   int start_pgn = PAGING_PGN(new_region->rg_start);
-  int end_pgn = PAGING_PGN(new_region->rg_end - 1);
+  int end_pgn = PAGING_PGN((new_region->rg_end - 1));
   for (int pgn = start_pgn; pgn <= end_pgn; ++pgn)
   {
     uint32_t pte = caller->mm->pgd[pgn];
