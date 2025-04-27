@@ -1,0 +1,169 @@
+ld_routine
+Time slot   0
+	Loaded a process at input/proc/s1, PID: 1 PRIO: 1
+	CPU 0: Dispatched process  1
+Time slot   1
+	Loaded a process at input/proc/s2, PID: 2 PRIO: 3
+Time slot   2
+	CPU 1: Dispatched process  2
+	Loaded a process at input/proc/an0c, PID: 3 PRIO: 1
+Time slot   3
+Time slot   4
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  3
+===== PHYSICAL MEMORY AFTER ALLOCATION =====
+PID=3 - Region=1 - Address=00000000 - Size=100 byte
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+Time slot   5
+===== PHYSICAL MEMORY AFTER WRITING =====
+write region=1 offset=0 value=115
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+	CPU 1: Put process  2 to run queue
+	CPU 1: Dispatched process  1
+Time slot   6
+===== PHYSICAL MEMORY AFTER WRITING =====
+write region=1 offset=1 value=49
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 49
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+Time slot   7
+===== PHYSICAL MEMORY AFTER WRITING =====
+write region=1 offset=2 value=-1
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 49
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+Time slot   8
+	CPU 0: Put process  3 to run queue
+	CPU 0: Dispatched process  3
+===== PHYSICAL MEMORY AFTER READING =====
+read region=1 offset=0 value=115
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 49
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+===== PHYSICAL MEMORY AFTER READING =====
+read region=1 offset=1 value=49
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 49
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+===== PHYSICAL MEMORY AFTER READING =====
+read region=1 offset=2 value=-1
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 49
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+The procname retrieved from memregionid 1 is "s1"
+	CPU 1: Processed  1 has finished
+	CPU 1: Dispatched process  2
+Time slot   9
+===== PHYSICAL MEMORY AFTER WRITING =====
+write region=1 offset=1 value=50
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 50
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+Time slot  10
+===== PHYSICAL MEMORY AFTER READING =====
+read region=1 offset=0 value=115
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 50
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+===== PHYSICAL MEMORY AFTER READING =====
+read region=1 offset=1 value=50
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 50
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+===== PHYSICAL MEMORY AFTER READING =====
+read region=1 offset=2 value=-1
+print_pgtbl: 0 - 256
+00000000: 80000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+===== PHYSICAL MEMORY DUMP =====
+BYTE 00000000: 115
+BYTE 00000001: 50
+BYTE 00000002: -1
+===== PHYSICAL MEMORY END-DUMP =====
+================================================================
+The procname retrieved from memregionid 1 is "s2"
+Time slot  11
+===== PHYSICAL MEMORY AFTER DEALLOCATION =====
+PID=3 - Region=1
+print_pgtbl: 0 - 256
+00000000: 00000000
+Page Number: 0 -> Frame Number: 0
+================================================================
+Time slot  12
+	CPU 0: Processed  3 has finished
+	CPU 0 stopped
+	CPU 1: Put process  2 to run queue
+	CPU 1: Dispatched process  2
+Time slot  13
+Time slot  14
+Time slot  15
+Time slot  16
+	CPU 1: Processed  2 has finished
+	CPU 1 stopped
+Time slot  17
